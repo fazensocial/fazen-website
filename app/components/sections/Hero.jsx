@@ -272,7 +272,7 @@ function CarouselColumn({ cards, direction, baseDur, isSlowed, hoveredId, onHove
 
 function MobileCard({ card }) {
   return (
-    <div className="relative w-36 aspect-[4/5] shrink-0 rounded-xl overflow-hidden">
+    <div className="relative w-32 h-[160px] shrink-0 rounded-xl overflow-hidden">
       <Image
         src={card.image}
         alt={card.title}
@@ -384,7 +384,7 @@ export default function Hero() {
           {/* Headline */}
           <motion.h1
             variants={FADE_UP}
-            className="font-display text-[clamp(2.4rem,5.5vw,6.5rem)]
+            className="font-display text-[clamp(2.8rem,7vw,6.5rem)]
                        leading-[0.95] text-white-soft mb-5 lg:mb-6"
           >
             Bold Design.<br />
@@ -429,7 +429,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 lg:mt-auto pt-6 lg:pt-8 flex gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
+          className="hidden lg:flex mt-6 lg:mt-auto pt-6 lg:pt-8 gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
         >
           {STATS.map(({ value, label }) => (
             <div key={label}>
@@ -469,8 +469,16 @@ export default function Hero() {
       </div>
 
       {/* ── Mobile: horizontal carousel ──────────────────── */}
-      <div className="lg:hidden flex-1 flex flex-col justify-center gap-4 pb-10 pt-2 relative overflow-hidden">
+      <div className="lg:hidden flex-1 flex flex-col justify-center gap-3 pb-6 pt-2 relative overflow-x-hidden">
 
+        {/* Top fade */}
+        <div aria-hidden
+          className="absolute top-0 inset-x-0 h-8 pointer-events-none z-10
+                     bg-gradient-to-b from-void to-transparent" />
+        {/* Bottom fade */}
+        <div aria-hidden
+          className="absolute bottom-0 inset-x-0 h-8 pointer-events-none z-10
+                     bg-gradient-to-t from-void to-transparent" />
         {/* Left fade mask */}
         <div aria-hidden
           className="absolute inset-y-0 left-0 w-10 pointer-events-none z-10

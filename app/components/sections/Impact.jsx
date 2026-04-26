@@ -114,7 +114,7 @@ function PillarCard({ pillar, index }) {
       animate="rest"
     >
       {/* ── Image area ── */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] min-h-[200px] lg:min-h-0 overflow-hidden">
         <motion.div
           variants={{ rest: { scale: 1 }, hover: { scale: 1.07 } }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -142,20 +142,25 @@ function PillarCard({ pillar, index }) {
           {String(index + 1).padStart(2, "0")}
         </motion.span>
 
-        {/* Title — shifts up on hover */}
+        {/* Title — shifts up on hover (desktop only) */}
         <motion.h3
-          variants={{ rest: { y: 0 }, hover: { y: -18 } }}
+          variants={{ rest: { y: 0 }, hover: { y: -10 } }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="font-heading font-semibold text-void text-lg lg:text-xl leading-snug relative"
         >
           {pillar.title}
         </motion.h3>
 
-        {/* Description — fades in on hover */}
+        {/* Description — always visible on mobile */}
+        <p className="lg:hidden font-body text-sm text-void/55 leading-relaxed mt-2.5">
+          {pillar.desc}
+        </p>
+
+        {/* Description — fades in on hover (desktop) */}
         <motion.p
           variants={{ rest: { opacity: 0, y: 10 }, hover: { opacity: 1, y: 0 } }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-          className="font-body text-sm text-void/55 leading-relaxed mt-2.5 relative"
+          className="hidden lg:block font-body text-sm text-void/55 leading-relaxed mt-2.5 relative"
         >
           {pillar.desc}
         </motion.p>
@@ -194,7 +199,7 @@ export default function Impact() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          className="mb-12 lg:mb-16"
+          className="mb-12 lg:mb-16 text-center"
         >
           <motion.p
             variants={FADE_UP}
@@ -211,7 +216,7 @@ export default function Impact() {
           </motion.h2>
           <motion.p
             variants={FADE_UP}
-            className="font-body text-void/45 text-base lg:text-lg mt-4 max-w-xl leading-relaxed"
+            className="font-body text-void/45 text-base lg:text-lg mt-4 max-w-xl leading-relaxed mx-auto"
           >
             Every metric here is a brand that pushed forward — and trusted Fazen to make it happen.
           </motion.p>
