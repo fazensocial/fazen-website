@@ -272,13 +272,13 @@ function CarouselColumn({ cards, direction, baseDur, isSlowed, hoveredId, onHove
 
 function MobileCard({ card }) {
   return (
-    <div className="relative w-36 aspect-[4/5] shrink-0 rounded-xl overflow-hidden">
+    <div className="relative w-full aspect-[4/5] shrink-0 rounded-xl overflow-hidden">
       <Image
         src={card.image}
         alt={card.title}
         fill
         className="object-cover"
-        sizes="144px"
+        sizes="(max-width: 360px) 45vw, 31vw"
         priority={false}
       />
       <div className="absolute bottom-0 inset-x-0 h-2/5
@@ -301,44 +301,47 @@ function MobileCard({ card }) {
 // "left"  → content moves left  (x decreases): starts at 0, resets at -setWidth
 
 function CarouselRow({ cards, direction, baseDur }) {
-  const trackRef = useRef(null);
-  const posRef   = useRef(null);
-  const x        = useMotionValue(0);
-  const doubled  = [...cards, ...cards];
+  const [startIdx, setStartIdx] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(3);
 
-  useAnimationFrame((_, delta) => {
-    const el = trackRef.current;
-    if (!el) return;
+  useEffect(() => {
+    const updateVisibleCount = () => {
+      setVisibleCount(window.innerWidth < 360 ? 2 : 3);
+    };
 
-    const setWidth = el.scrollWidth / 2 + GAP / 2;
+    updateVisibleCount();
+    window.addEventListener("resize", updateVisibleCount);
+    return () => window.removeEventListener("resize", updateVisibleCount);
+  }, []);
 
-    if (posRef.current === null) {
-      posRef.current = direction === "left" ? 0 : -setWidth;
-      x.set(posRef.current);
-      return;
-    }
+  useEffect(() => {
+    const stepMs = Math.max(2200, (baseDur * 1000) / cards.length);
+    const timer = setInterval(() => {
+      setStartIdx((idx) => {
+        const step = direction === "left" ? 1 : -1;
+        return (idx + step + cards.length) % cards.length;
+      });
+    }, stepMs);
 
-    const pixelsPerMs = setWidth / (baseDur * 1000);
-    const move = pixelsPerMs * delta;
+    return () => clearInterval(timer);
+  }, [baseDur, cards.length, direction]);
 
-    let next = posRef.current;
-    if (direction === "left") {
-      next -= move;
-      if (next <= -setWidth) next += setWidth;
-    } else {
-      next += move;
-      if (next >= 0) next -= setWidth;
-    }
-
-    posRef.current = next;
-    x.set(next);
-  });
+  const visibleCards = Array.from({ length: visibleCount }, (_, i) => (
+    cards[(startIdx + i) % cards.length]
+  ));
 
   return (
-    <div className="overflow-x-hidden overflow-y-visible">
-      <motion.div ref={trackRef} style={{ x }} className="flex gap-3 w-max">
-        {doubled.map((card, i) => (
-          <MobileCard key={`${card.id}-${i}`} card={card} />
+    <div className="overflow-visible px-5">
+      <motion.div
+        key={`${direction}-${startIdx}-${visibleCount}`}
+        initial={{ opacity: 0, x: direction === "left" ? 14 : -14 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="grid gap-3"
+        style={{ gridTemplateColumns: `repeat(${visibleCount}, minmax(0, 1fr))` }}
+      >
+        {visibleCards.map((card) => (
+          <MobileCard key={card.id} card={card} />
         ))}
       </motion.div>
     </div>
@@ -351,7 +354,7 @@ export default function Hero() {
   const [hoveredId, setHoveredId] = useState(null);
 
   return (
-    <section className="relative flex flex-col lg:flex-row h-[100svh] lg:h-screen overflow-hidden">
+    <section className="relative flex flex-col lg:flex-row min-h-[100svh] lg:h-screen overflow-hidden">
 
       {/* BG glow */}
       <div aria-hidden className="absolute inset-0 pointer-events-none z-0">
@@ -363,7 +366,7 @@ export default function Hero() {
       <div className="relative z-10 flex flex-col flex-shrink-0 items-center lg:items-start
                       pl-6 lg:pl-[240px] pr-6 lg:pr-14
                       w-full lg:w-[52%]
-                      pt-[100px] lg:pt-32 pb-0 lg:pb-10">
+                      pt-[104px] lg:pt-32 pb-6 lg:pb-10">
 
         <motion.div
           variants={STAGGER}
@@ -374,8 +377,8 @@ export default function Hero() {
           {/* Badge */}
           <motion.div variants={FADE_UP} className="mb-5 lg:mb-8">
             <span className="inline-flex items-center gap-2.5
-                             font-body text-sm text-white-soft/50
-                             border border-white/[.10] rounded-full px-4 py-1.5">
+                             font-body text-xs sm:text-sm text-white-soft/50
+                             border border-white/[.10] rounded-full px-3.5 sm:px-4 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-fazen animate-pulse shrink-0" />
               Graphic Designer &amp; Creativepreneur
             </span>
@@ -384,8 +387,10 @@ export default function Hero() {
           {/* Headline */}
           <motion.h1
             variants={FADE_UP}
-            className="font-display text-[clamp(2.4rem,5.5vw,6.5rem)]
-                       leading-[0.95] text-white-soft mb-5 lg:mb-6"
+            className="font-display text-[2.35rem] sm:text-[clamp(2.4rem,5.5vw,6.5rem)]
+                       leading-[0.95] text-white-soft mb-6 lg:mb-6
+                       [text-shadow:2px_2px_0_rgba(255,85,0,0.75),4px_4px_0_rgba(0,196,204,0.45)]
+                       lg:[text-shadow:none]"
           >
             Bold Design.<br />
             Real <TypewriterText />
@@ -407,7 +412,7 @@ export default function Hero() {
             <Link
               href="/soon"
               className="inline-flex items-center gap-2 font-body font-medium text-sm
-                         bg-fazen text-white px-6 py-3 rounded-full
+                         bg-fazen text-white px-5 sm:px-6 py-3 rounded-full
                          hover:bg-fazen/85 transition-colors duration-150"
             >
               Explore Portfolio
@@ -416,7 +421,7 @@ export default function Hero() {
             <Link
               href="/soon"
               className="inline-flex items-center gap-2 font-body font-medium text-sm
-                         text-white-soft border border-white/[.14] px-6 py-3 rounded-full
+                         text-white-soft border border-white/[.14] px-5 sm:px-6 py-3 rounded-full
                          hover:border-white/30 transition-colors duration-150"
             >
               Let&apos;s Work Together
@@ -429,14 +434,14 @@ export default function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 lg:mt-auto pt-6 lg:pt-8 flex gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
+          className="hidden sm:flex mt-7 lg:mt-auto pt-5 lg:pt-8 gap-6 md:gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
         >
           {STATS.map(({ value, label }) => (
-            <div key={label}>
-              <p className="font-heading font-semibold text-2xl md:text-3xl text-white-soft leading-none">
+            <div key={label} className="text-center lg:text-left">
+              <p className="font-heading font-semibold text-xl md:text-2xl lg:text-3xl text-white-soft leading-none">
                 {value}
               </p>
-              <p className="font-body text-xs text-white-soft/40 mt-1.5">{label}</p>
+              <p className="font-body text-[11px] lg:text-xs text-white-soft/40 mt-1.5">{label}</p>
             </div>
           ))}
         </motion.div>
@@ -469,16 +474,7 @@ export default function Hero() {
       </div>
 
       {/* ── Mobile: horizontal carousel ──────────────────── */}
-      <div className="lg:hidden flex-1 flex flex-col justify-center gap-4 pb-10 pt-2 relative overflow-hidden">
-
-        {/* Left fade mask */}
-        <div aria-hidden
-          className="absolute inset-y-0 left-0 w-10 pointer-events-none z-10
-                     bg-gradient-to-r from-void to-transparent" />
-        {/* Right fade mask */}
-        <div aria-hidden
-          className="absolute inset-y-0 right-0 w-10 pointer-events-none z-10
-                     bg-gradient-to-l from-void to-transparent" />
+      <div className="lg:hidden flex flex-col justify-start gap-4 pb-8 pt-2 relative overflow-hidden">
 
         {ROWS.map((cards, ri) => (
           <CarouselRow
