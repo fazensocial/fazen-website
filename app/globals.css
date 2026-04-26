@@ -1,26 +1,49 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand Colors */
+  --color-void:       #090C11;
+  --color-fazen:      #FF5500;
+  --color-white-soft: #F2F5F7;
+
+  /* Font families — CSS vars injected by next/font in layout.js */
+  --font-display: var(--font-sharone),      sans-serif;
+  --font-heading: var(--font-clash),        sans-serif;
+  --font-body:    var(--font-inter-tight),  sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    background-color: #090C11;
+    color: #F2F5F7;
+    height: 100%;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    font-family: var(--font-inter-tight), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .font-display {
+    font-family: var(--font-sharone), sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Consistent horizontal padding across all page sections */
+  .page-container {
+    padding-left:  1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .page-container {
+      padding-left:  240px;
+      padding-right: 240px;
+    }
+  }
 }
+
