@@ -106,7 +106,7 @@ export default function PageHero({
                 width: "220px",
                 overflow: "visible",
                 backgroundImage:
-                  "conic-gradient(from 70deg at right top, rgba(255,255,255,0.18), rgba(255,85,0,0.38), transparent, transparent)",
+                  "conic-gradient(from 70deg at right top, rgba(255,255,255,0.22), rgba(255,85,0,0.28), transparent, transparent)",
               }}
             >
               {/* Fade bottom edge into void */}
@@ -125,7 +125,7 @@ export default function PageHero({
                 width: "220px",
                 overflow: "visible",
                 backgroundImage:
-                  "conic-gradient(from 290deg at left top, transparent, transparent, rgba(255,85,0,0.38), rgba(255,255,255,0.18))",
+                  "conic-gradient(from 290deg at left top, transparent, transparent, rgba(255,85,0,0.28), rgba(255,255,255,0.22))",
               }}
             >
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "160px", zIndex: 20, background: "linear-gradient(to top, #090C11, transparent)" }} />
@@ -147,7 +147,7 @@ export default function PageHero({
 
             {/* Wide orange glow blob at lamp line */}
             <motion.div
-              animate={{ opacity: [0.38, 0.62, 0.38] }}
+              animate={{ opacity: [0.25, 0.42, 0.25] }}
               transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
               style={{
                 position: "absolute",
@@ -158,7 +158,7 @@ export default function PageHero({
                 left: "50%",
                 translateX: "-50%",
                 translateY: "-50%",
-                background: "rgba(255,85,0,0.38)",
+                background: "rgba(255,85,0,0.28)",
                 borderRadius: "50%",
                 filter: "blur(40px)",
               }}
@@ -176,7 +176,7 @@ export default function PageHero({
                 left: "50%",
                 translateX: "-50%",
                 translateY: "-96px",
-                background: "rgba(255,110,20,0.7)",
+                background: "rgba(255,110,20,0.5)",
                 borderRadius: "50%",
                 filter: "blur(28px)",
               }}
@@ -203,16 +203,16 @@ export default function PageHero({
               }}
             />
 
-            {/* Blackout — hides everything above the lamp line */}
+            {/* Blackout — hides messy conic-gradient tops above the lamp line */}
             <div
               style={{
                 position: "absolute",
                 zIndex: 40,
-                width: "110%",
-                height: "176px",
-                top: "50%",
+                width: "120%",
+                height: "96px",
+                top: 0,
                 left: "50%",
-                transform: "translate(-50%, -200px)",
+                transform: "translateX(-50%)",
                 background: "#090C11",
               }}
             />
@@ -250,8 +250,10 @@ export default function PageHero({
             <motion.div variants={FADE_UP} className="mb-7">
               <span
                 className="inline-flex items-center gap-2.5
-                           font-body text-sm text-white-soft/50
-                           border border-white/[.10] rounded-full px-4 py-1.5"
+                           font-body text-sm text-white-soft/65
+                           border border-white/[.12] rounded-full px-4 py-1.5
+                           bg-void/50 backdrop-blur-md"
+                style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-fazen animate-pulse shrink-0" />
                 {badge}
@@ -263,6 +265,7 @@ export default function PageHero({
               variants={FADE_UP}
               className="font-display text-[clamp(2.6rem,5.5vw,5rem)]
                          leading-[1.02] text-white-soft mb-5"
+              style={{ textShadow: "0 2px 32px rgba(0,0,0,0.95), 0 0 80px rgba(0,0,0,0.8)" }}
             >
               {headline}
             </motion.h1>
