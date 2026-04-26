@@ -51,13 +51,12 @@ export default function PageHero({
   };
   const onMouseLeave = () => { rawX.set(0.5); rawY.set(0.5); };
 
-  /* Content block — subtle 3-D tilt */
-  const rotateX = useTransform(smoothY, [0, 1], [3.5, -3.5]);
-  const rotateY = useTransform(smoothX, [0, 1], [-4,   4  ]);
+  /* Content block — directional 3-D tilt */
+  const rotateX = useTransform(smoothY, [0, 1], [10, -10]);
+  const rotateY = useTransform(smoothX, [0, 1], [-14,  14]);
 
-  /* Background glow follows cursor */
-  const glowLeft = useTransform(smoothX, [0, 1], ["25%", "75%"]);
-  const glowTop  = useTransform(smoothY, [0, 1], ["20%", "80%"]);
+  /* Spotlight cone follows cursor X, anchored to top */
+  const spotlightX = useTransform(smoothX, [0, 1], ["28%", "72%"]);
 
   return (
     <HeroMouseCtx.Provider value={{ smoothX, smoothY }}>
@@ -81,16 +80,17 @@ export default function PageHero({
           }}
         />
 
-        {/* Cursor-tracking orange bloom */}
+        {/* Spotlight cone from top — follows cursor X */}
         <motion.div
           aria-hidden
-          className="absolute w-[660px] h-[440px] rounded-full blur-[140px] pointer-events-none"
+          className="absolute top-0 pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(255,85,0,0.09) 0%, transparent 70%)",
-            left: glowLeft,
-            top:  glowTop,
+            left: spotlightX,
             translateX: "-50%",
-            translateY: "-50%",
+            width: "680px",
+            height: "100%",
+            background:
+              "radial-gradient(ellipse 44% 82% at 50% 0%, rgba(255,85,0,0.22) 0%, rgba(255,85,0,0.08) 42%, transparent 68%)",
           }}
         />
 
