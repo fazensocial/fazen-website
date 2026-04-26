@@ -16,8 +16,16 @@ import Footer from "./components/sections/Footer";
 export default function Home() {
   return (
     <main>
-      <Hero />
-      <TrustedBy />
+      {/* Sticky scroll: Hero stays fixed, TrustedBy slides over it */}
+      <div className="relative">
+        <div className="sticky top-0 z-0">
+          <Hero />
+        </div>
+        <div className="relative z-10">
+          <TrustedBy />
+        </div>
+      </div>
+
       <Introduction />
       <Advantage />
       <FeaturedWorks />
