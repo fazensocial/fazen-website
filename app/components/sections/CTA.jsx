@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Layers } from "lucide-react";
+import { useState } from "react";
 
-/* ─── Blob definitions — darker for text readability ─────── */
+/* ─── Blob definitions — dark for readability ────────────── */
 
 const BLOBS = [
   { cx: 0.14, cy: 0.22, orbitR: 0.13, speed: 0.09, phase: 0.0, rFrac: 1.05, rgb: "8,8,12"   },
@@ -15,9 +16,25 @@ const BLOBS = [
   { cx: 0.42, cy: 0.64, orbitR: 0.09, speed: 0.15, phase: 5.5, rFrac: 0.76, rgb: "18,18,28" },
 ];
 
-/* ─── Liquid Chrome Hook ─────────────────────────────────── */
+const CLICK_DUR = 1800; // ms per ripple
+
+/* ─── Liquid Chrome + Click Ripple Hook ──────────────────── */
 
 function useLiquidChrome(canvasRef) {
+  const clicksRef = useRef([]);
+
+  /* Called from section onClick — records normalized click coords */
+  const addClick = useCallback((e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    clicksRef.current.push({
+      x: (e.clientX - rect.left)  / rect.width,
+      y: (e.clientY - rect.top)   / rect.height,
+      t: Date.now(),
+    });
+  }, [canvasRef]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,7 +79,8 @@ function useLiquidChrome(canvasRef) {
     let frameId;
 
     const draw = () => {
-      const t = (Date.now() - start) / 1000;
+      const t   = (Date.now() - start) / 1000;
+      const now = Date.now();
 
       smooth.x += (mouse.x * w - smooth.x) * 0.022;
       smooth.y += (mouse.y * h - smooth.y) * 0.022;
@@ -70,8 +88,8 @@ function useLiquidChrome(canvasRef) {
       const mx = smooth.x / w;
       const my = smooth.y / h;
 
+      /* ── Blobs on offscreen canvas ── */
       offCtx.clearRect(0, 0, w, h);
-
       BLOBS.forEach((blob) => {
         const bx = (blob.cx + Math.cos(t * blob.speed + blob.phase) * blob.orbitR + (mx - 0.5) * 0.06) * w;
         const by = (blob.cy + Math.sin(t * blob.speed + blob.phase * 0.7) * blob.orbitR + (my - 0.5) * 0.04) * h;
@@ -89,6 +107,7 @@ function useLiquidChrome(canvasRef) {
         offCtx.fill();
       });
 
+      /* ── Composite to main canvas ── */
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "#070709";
       ctx.fillRect(0, 0, w, h);
@@ -97,7 +116,7 @@ function useLiquidChrome(canvasRef) {
       ctx.drawImage(off, 0, 0, w, h);
       ctx.filter = "none";
 
-      /* Cursor blob — kept very subtle */
+      /* ── Cursor blob ── */
       const cr = 0.22 * Math.min(w, h);
       ctx.filter = `blur(${Math.round(blurPx * 0.85)}px)`;
       const cg = ctx.createRadialGradient(smooth.x, smooth.y, 0, smooth.x, smooth.y, cr);
@@ -110,6 +129,72 @@ function useLiquidChrome(canvasRef) {
       ctx.fill();
       ctx.filter = "none";
 
+      /* ── Click ripples ── */
+      clicksRef.current = clicksRef.current.filter(c => now - c.t < CLICK_DUR);
+
+      clicksRef.current.forEach((click) => {
+        const raw = (now - click.t) / CLICK_DUR;           // 0 → 1, linear
+        const p   = 1 - Math.pow(1 - raw, 3);              // ease-out cubic
+        const fade = 1 - raw;
+
+        const cx   = click.x * w;
+        const cy   = click.y * h;
+        const maxR = 0.46 * Math.min(w, h);
+
+        /* Layer A — blurred halo: warm silver bloom expanding from center */
+        const haloR = maxR * p;
+        ctx.filter = `blur(${Math.round(blurPx * 0.55)}px)`;
+        const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(1, haloR));
+        hg.addColorStop(0,    `rgba(255,110,40,${fade * 0.28})`);  // orange core
+        hg.addColorStop(0.22, `rgba(215,210,230,${fade * 0.38})`); // silver bloom
+        hg.addColorStop(0.65, `rgba(180,176,200,${fade * 0.10})`);
+        hg.addColorStop(1,    "transparent");
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(1, haloR), 0, Math.PI * 2);
+        ctx.fillStyle = hg;
+        ctx.fill();
+        ctx.filter = "none";
+
+        /* Layer B — fast outer ring (crisp shockwave) */
+        const r1 = maxR * p;
+        ctx.save();
+        ctx.strokeStyle = `rgba(210,206,228,${fade * 0.22})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r1, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        /* Layer C — slower inner ring (emerges with a delay, orange tint) */
+        if (raw > 0.08) {
+          const p2 = 1 - Math.pow(1 - Math.min(1, (raw - 0.08) / 0.92), 3);
+          const r2 = maxR * 0.58 * p2;
+          ctx.save();
+          ctx.strokeStyle = `rgba(255,90,30,${fade * 0.18})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.arc(cx, cy, Math.max(0.5, r2), 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        /* Layer D — tiny bright flash at click point, visible only in first 20% */
+        if (raw < 0.20) {
+          const flashP = raw / 0.20;
+          const flashR = 18 * flashP;
+          ctx.filter = `blur(${Math.round(blurPx * 0.3)}px)`;
+          const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, flashR);
+          fg.addColorStop(0,   `rgba(255,200,160,${(1 - flashP) * 0.80})`);
+          fg.addColorStop(0.5, `rgba(255,130,60,${(1 - flashP)  * 0.30})`);
+          fg.addColorStop(1,   "transparent");
+          ctx.beginPath();
+          ctx.arc(cx, cy, flashR, 0, Math.PI * 2);
+          ctx.fillStyle = fg;
+          ctx.fill();
+          ctx.filter = "none";
+        }
+      });
+
       frameId = requestAnimationFrame(draw);
     };
 
@@ -120,6 +205,8 @@ function useLiquidChrome(canvasRef) {
       ro.disconnect();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return addClick;
 }
 
 /* ─── Variants ───────────────────────────────────────────── */
@@ -134,138 +221,14 @@ const STAGGER = {
   show:   { transition: { staggerChildren: 0.12, delayChildren: 0.06 } },
 };
 
-/* ─── Click Effect: Brush Strokes ("Start a Conversation") ── */
-/*   10 ink strokes radiate from click — like starting to sketch   */
+/* ─── Glass Button — magnetic hover ─────────────────────── */
 
-function BrushStroke({ x, y, angle, dist, thickness, length, isAccent }) {
-  const rad = (angle * Math.PI) / 180;
-  const dx  = Math.cos(rad) * dist;
-  const dy  = Math.sin(rad) * dist;
+function GlassButton({ href, children, icon: Icon, variant = "light" }) {
+  const ref = useRef(null);
+  const [delta, setDelta] = useState({ x: 0, y: 0 });
 
-  return (
-    <motion.div
-      className="absolute pointer-events-none"
-      style={{
-        left: x - thickness / 2,
-        top:  y - length / 2,
-        width:  thickness,
-        height: length,
-        borderRadius: thickness,
-        backgroundColor: isAccent ? "#FF5500" : "rgba(255,255,255,0.72)",
-        rotate: angle,
-        transformOrigin: "center center",
-      }}
-      initial={{ opacity: 0.95, x: 0, y: 0, scaleY: 1, scaleX: 1 }}
-      animate={{ opacity: 0,    x: dx, y: dy, scaleY: 0.2, scaleX: 0.5 }}
-      transition={{ duration: 0.55, ease: [0.15, 0, 0.75, 1] }}
-    />
-  );
-}
-
-function BrushBurst({ burst }) {
-  return (
-    <>
-      {burst.strokes.map((s) => (
-        <BrushStroke key={s.key} x={burst.x} y={burst.y} {...s} />
-      ))}
-    </>
-  );
-}
-
-function makeBrushBurst(x, y) {
-  return {
-    id:      Date.now() + Math.random(),
-    x, y,
-    strokes: Array.from({ length: 10 }, (_, i) => ({
-      key:      i,
-      angle:    i * 36 + (Math.random() * 16 - 8),
-      dist:     48 + Math.random() * 36,
-      thickness: 2 + Math.random() * 2.5,
-      length:   8 + Math.random() * 14,
-      isAccent: i % 4 === 0,
-    })),
-  };
-}
-
-/* ─── Click Effect: Card Scatter ("View Our Work") ──────── */
-/*   Portfolio cards scatter from click — like fanning out work   */
-
-const CARD_TONES = [
-  "rgba(200,200,215,0.70)",
-  "rgba(140,140,158,0.60)",
-  "rgba(90,90,110,0.55)",
-  "rgba(220,220,232,0.65)",
-  "rgba(55,55,72,0.50)",
-  "rgba(170,170,188,0.62)",
-];
-
-function PortfolioCard({ x, y, angle, dist, rotEnd, w, h, isAccent, tone }) {
-  const rad = (angle * Math.PI) / 180;
-  const dx  = Math.cos(rad) * dist;
-  const dy  = Math.sin(rad) * dist + 18; // mild gravity
-
-  return (
-    <motion.div
-      className="absolute pointer-events-none rounded-[3px]"
-      style={{
-        left:            x - w / 2,
-        top:             y - h / 2,
-        width:           w,
-        height:          h,
-        backgroundColor: isAccent ? "#FF5500" : tone,
-        boxShadow:       isAccent ? "0 0 10px rgba(255,85,0,0.5)" : "none",
-      }}
-      initial={{ opacity: 0.88, x: 0, y: 0, rotate: 0, scale: 1 }}
-      animate={{ opacity: 0,    x: dx, y: dy, rotate: rotEnd, scale: 0.55 }}
-      transition={{ duration: 0.70, ease: [0.18, 0, 0.65, 1] }}
-    />
-  );
-}
-
-function CardBurst({ burst }) {
-  return (
-    <>
-      {burst.cards.map((c) => (
-        <PortfolioCard key={c.key} x={burst.x} y={burst.y} {...c} />
-      ))}
-    </>
-  );
-}
-
-function makeCardBurst(x, y) {
-  return {
-    id:    Date.now() + Math.random(),
-    x, y,
-    cards: Array.from({ length: 7 }, (_, i) => ({
-      key:      i,
-      angle:    (i / 7) * 360 + (Math.random() * 24 - 12),
-      dist:     42 + Math.random() * 48,
-      rotEnd:   Math.random() * 64 - 32,
-      w:        20 + Math.random() * 22,
-      h:        14 + Math.random() * 18,
-      isAccent: i === 0,
-      tone:     CARD_TONES[i % CARD_TONES.length],
-    })),
-  };
-}
-
-/* ─── Buttons ────────────────────────────────────────────── */
-
-function ConversationButton({ href }) {
-  const wrapRef = useRef(null);
-  const [bursts, setBursts] = useState([]);
-  const [delta,  setDelta]  = useState({ x: 0, y: 0 });
-
-  const handleClick = useCallback((e) => {
-    const rect = wrapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const burst = makeBrushBurst(e.clientX - rect.left, e.clientY - rect.top);
-    setBursts((prev) => [...prev, burst]);
-    setTimeout(() => setBursts((prev) => prev.filter((b) => b.id !== burst.id)), 650);
-  }, []);
-
-  const onMouseMove  = (e) => {
-    const rect = wrapRef.current?.getBoundingClientRect();
+  const onMouseMove = (e) => {
+    const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
     setDelta({
       x: (e.clientX - (rect.left + rect.width  / 2)) * 0.26,
@@ -274,100 +237,36 @@ function ConversationButton({ href }) {
   };
   const onMouseLeave = () => setDelta({ x: 0, y: 0 });
 
+  const cls =
+    variant === "light"
+      ? "bg-white/[0.13] border-white/[0.28] hover:bg-white/[0.22] hover:border-white/[0.46] text-white"
+      : "bg-white/[0.04] border-white/[0.11] hover:bg-white/[0.09] hover:border-white/[0.24] text-white/60 hover:text-white";
+
   return (
-    <motion.div
-      ref={wrapRef}
-      className="relative"
-      style={{ overflow: "visible" }}
-      animate={{ x: delta.x, y: delta.y }}
-      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+    <motion.a
+      ref={ref}
+      href={href}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      onClick={handleClick}
+      animate={{ x: delta.x, y: delta.y }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+      className={`group relative inline-flex items-center gap-3 px-7 py-3.5 rounded-xl
+                  border backdrop-blur-md overflow-hidden cursor-pointer
+                  font-heading font-medium text-sm transition-colors duration-250
+                  ${cls}`}
     >
-      {/* Burst particles rendered outside link's overflow-hidden */}
-      <div className="absolute inset-0 pointer-events-none" style={{ overflow: "visible", zIndex: 30 }}>
-        {bursts.map((b) => <BrushBurst key={b.id} burst={b} />)}
-      </div>
-
-      <a
-        href={href}
-        className="group relative inline-flex items-center gap-3 px-7 py-3.5 rounded-xl
-                   border bg-white/[0.13] border-white/[0.28]
-                   hover:bg-white/[0.22] hover:border-white/[0.46]
-                   text-white backdrop-blur-md overflow-hidden cursor-pointer
-                   font-heading font-medium text-sm transition-colors duration-250"
-      >
-        <div className="absolute inset-x-4 top-0 h-px
-                        bg-gradient-to-r from-transparent via-white/45 to-transparent
-                        opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <span className="relative">Start a Conversation</span>
-        <ArrowRight
+      {/* Top inner shine on hover */}
+      <div className="absolute inset-x-4 top-0 h-px
+                      bg-gradient-to-r from-transparent via-white/45 to-transparent
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <span className="relative">{children}</span>
+      {Icon && (
+        <Icon
           size={15}
           className="relative transition-transform duration-300 group-hover:translate-x-0.5"
         />
-      </a>
-    </motion.div>
-  );
-}
-
-function WorkButton({ href }) {
-  const wrapRef = useRef(null);
-  const [bursts, setBursts] = useState([]);
-  const [delta,  setDelta]  = useState({ x: 0, y: 0 });
-
-  const handleClick = useCallback((e) => {
-    const rect = wrapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const burst = makeCardBurst(e.clientX - rect.left, e.clientY - rect.top);
-    setBursts((prev) => [...prev, burst]);
-    setTimeout(() => setBursts((prev) => prev.filter((b) => b.id !== burst.id)), 800);
-  }, []);
-
-  const onMouseMove  = (e) => {
-    const rect = wrapRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setDelta({
-      x: (e.clientX - (rect.left + rect.width  / 2)) * 0.26,
-      y: (e.clientY - (rect.top  + rect.height / 2)) * 0.26,
-    });
-  };
-  const onMouseLeave = () => setDelta({ x: 0, y: 0 });
-
-  return (
-    <motion.div
-      ref={wrapRef}
-      className="relative"
-      style={{ overflow: "visible" }}
-      animate={{ x: delta.x, y: delta.y }}
-      transition={{ type: "spring", stiffness: 320, damping: 22 }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      onClick={handleClick}
-    >
-      <div className="absolute inset-0 pointer-events-none" style={{ overflow: "visible", zIndex: 30 }}>
-        {bursts.map((b) => <CardBurst key={b.id} burst={b} />)}
-      </div>
-
-      <a
-        href={href}
-        className="group relative inline-flex items-center gap-3 px-7 py-3.5 rounded-xl
-                   border bg-white/[0.04] border-white/[0.11]
-                   hover:bg-white/[0.09] hover:border-white/[0.24]
-                   text-white/60 hover:text-white
-                   backdrop-blur-md overflow-hidden cursor-pointer
-                   font-heading font-medium text-sm transition-colors duration-250"
-      >
-        <div className="absolute inset-x-4 top-0 h-px
-                        bg-gradient-to-r from-transparent via-white/45 to-transparent
-                        opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <span className="relative">View Our Work</span>
-        <Layers
-          size={15}
-          className="relative transition-transform duration-300 group-hover:translate-x-0.5"
-        />
-      </a>
-    </motion.div>
+      )}
+    </motion.a>
   );
 }
 
@@ -375,10 +274,13 @@ function WorkButton({ href }) {
 
 export default function CTA() {
   const canvasRef = useRef(null);
-  useLiquidChrome(canvasRef);
+  const addClick  = useLiquidChrome(canvasRef);
 
   return (
-    <section className="relative overflow-hidden bg-[#070709]">
+    <section
+      className="relative overflow-hidden bg-[#070709] cursor-crosshair"
+      onClick={addClick}
+    >
 
       {/* Divider */}
       <div className="page-container">
@@ -392,7 +294,7 @@ export default function CTA() {
         aria-hidden="true"
       />
 
-      {/* Extra dark veil — ensures text stays readable */}
+      {/* Dark veil — ensures text stays readable */}
       <div className="absolute inset-0 bg-black/55 pointer-events-none" />
 
       {/* Grain texture */}
@@ -458,8 +360,12 @@ export default function CTA() {
           {/* Buttons */}
           <motion.div variants={FADE_UP}
             className="flex flex-col sm:flex-row items-center gap-4 mt-1">
-            <ConversationButton href="/soon" />
-            <WorkButton href="/soon" />
+            <GlassButton href="/soon" variant="light" icon={ArrowRight}>
+              Start a Conversation
+            </GlassButton>
+            <GlassButton href="/soon" variant="dark" icon={Layers}>
+              View Our Work
+            </GlassButton>
           </motion.div>
 
         </motion.div>
