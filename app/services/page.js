@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowDown } from "lucide-react";
 import PageHero from "../components/ui/PageHero";
+import TrustedBy from "../components/sections/TrustedBy";
 import Footer from "../components/sections/Footer";
 
 /* ─── WhatsApp icon (lucide doesn't include brand icons) ─── */
@@ -56,6 +57,9 @@ export default function ServicesPage() {
             </a>
           }
         />
+
+        {/* ── Trusted By ───────────────────────────────────── */}
+        <TrustedBy />
 
         {/* ── Services detail — to be built ────────────────── */}
         <div id="services-detail" />
