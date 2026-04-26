@@ -212,8 +212,7 @@ export default function PageHero({
                 height: "176px",
                 top: "50%",
                 left: "50%",
-                translateX: "-50%",
-                translateY: "-200px",
+                transform: "translate(-50%, -200px)",
                 background: "#090C11",
               }}
             />
