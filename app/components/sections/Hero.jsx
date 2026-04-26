@@ -363,73 +363,76 @@ export default function Hero() {
       <div className="relative z-10 flex flex-col flex-shrink-0 items-center lg:items-start
                       pl-6 lg:pl-[240px] pr-6 lg:pr-14
                       w-full lg:w-[52%]
-                      pt-[100px] lg:pt-32 pb-0 lg:pb-10">
+                      pt-[100px] lg:pt-20 pb-0 lg:pb-10">
 
-        <motion.div
-          variants={STAGGER}
-          initial="hidden"
-          animate="show"
-          className="flex flex-col items-center lg:items-start text-center lg:text-left"
-        >
-          {/* Badge */}
-          <motion.div variants={FADE_UP} className="mb-5 lg:mb-8">
-            <span className="inline-flex items-center gap-2.5
-                             font-body text-sm text-white-soft/50
-                             border border-white/[.10] rounded-full px-4 py-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-fazen animate-pulse shrink-0" />
-              Graphic Designer &amp; Creativepreneur
-            </span>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            variants={FADE_UP}
-            className="font-display text-[clamp(2.8rem,7vw,6.5rem)]
-                       leading-[0.95] text-white-soft mb-5 lg:mb-6"
+        {/* Centering wrapper — on desktop fills remaining height and centers content */}
+        <div className="lg:flex-1 lg:flex lg:items-center w-full">
+          <motion.div
+            variants={STAGGER}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            Bold Design.<br />
-            Real <TypewriterText />
-          </motion.h1>
+            {/* Badge */}
+            <motion.div variants={FADE_UP} className="mb-3 lg:mb-5">
+              <span className="inline-flex items-center gap-2.5
+                               font-body text-sm text-white-soft/50
+                               border border-white/[.10] rounded-full px-4 py-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-fazen animate-pulse shrink-0" />
+                Graphic Designer &amp; Creativepreneur
+              </span>
+            </motion.div>
 
-          {/* Sub — hidden on mobile to save vertical space */}
-          <motion.p
-            variants={FADE_UP}
-            className="hidden sm:block font-body text-base md:text-lg text-white-soft/55
-                       max-w-md leading-relaxed mb-10"
-          >
-            End-to-end creative partner for brands that want to stand out —
-            from identity to social media, powered by 5+ years of experience
-            and AI as leverage.
-          </motion.p>
+            {/* Headline */}
+            <motion.h1
+              variants={FADE_UP}
+              className="font-display text-[clamp(2.5rem,5vw,5.5rem)]
+                         leading-[0.95] text-white-soft mb-5 lg:mb-6"
+            >
+              Bold Design.<br />
+              Real <TypewriterText />
+            </motion.h1>
 
-          {/* CTAs */}
-          <motion.div variants={FADE_UP} className="flex flex-wrap gap-3 justify-center lg:justify-start">
-            <Link
-              href="/soon"
-              className="inline-flex items-center gap-2 font-body font-medium text-sm
-                         bg-fazen text-white px-6 py-3 rounded-full
-                         hover:bg-fazen/85 transition-colors duration-150"
+            {/* Sub — hidden on mobile to save vertical space */}
+            <motion.p
+              variants={FADE_UP}
+              className="hidden sm:block font-body text-base md:text-lg text-white-soft/55
+                         max-w-md leading-relaxed mb-10"
             >
-              Explore Portfolio
-              <ArrowRight size={15} />
-            </Link>
-            <Link
-              href="/soon"
-              className="inline-flex items-center gap-2 font-body font-medium text-sm
-                         text-white-soft border border-white/[.14] px-6 py-3 rounded-full
-                         hover:border-white/30 transition-colors duration-150"
-            >
-              Let&apos;s Work Together
-            </Link>
+              End-to-end creative partner for brands that want to stand out —
+              from identity to social media, powered by 5+ years of experience
+              and AI as leverage.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div variants={FADE_UP} className="flex flex-wrap gap-3 justify-center lg:justify-start">
+              <Link
+                href="/soon"
+                className="inline-flex items-center gap-2 font-body font-medium text-sm
+                           bg-fazen text-white px-6 py-3 rounded-full
+                           hover:bg-fazen/85 transition-colors duration-150"
+              >
+                Explore Portfolio
+                <ArrowRight size={15} />
+              </Link>
+              <Link
+                href="/soon"
+                className="inline-flex items-center gap-2 font-body font-medium text-sm
+                           text-white-soft border border-white/[.14] px-6 py-3 rounded-full
+                           hover:border-white/30 transition-colors duration-150"
+              >
+                Let&apos;s Work Together
+              </Link>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden lg:flex mt-6 lg:mt-auto pt-6 lg:pt-8 gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
+          className="hidden lg:flex pt-6 lg:pt-8 gap-8 lg:gap-14 justify-center lg:justify-start border-t border-white/[.06] w-full"
         >
           {STATS.map(({ value, label }) => (
             <div key={label}>
