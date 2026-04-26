@@ -133,7 +133,7 @@ export default function Introduction() {
           {/* ── Right: Photo ───────────────────────────────── */}
           <motion.div
             variants={STAGGER}
-            className="relative w-full lg:w-[38%] shrink-0 min-h-[320px]"
+            className="relative w-full lg:w-[38%] shrink-0 h-[420px] lg:h-auto"
           >
             <motion.div
               variants={FADE_RIGHT}
