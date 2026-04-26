@@ -26,14 +26,38 @@ const interTight = Inter_Tight({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://fazen.vercel.app"),
+  title: "Fazen — Graphic Designer & Creativepreneur",
+  description:
+    "Hafaz Sofyan — Graphic Designer with 5+ years of experience. Specializing in Logo & Brand Identity, Social Media, Presentation, and Marketing Design.",
   icons: {
     icon: [{ url: "/favicon.png", sizes: "2084x2084", type: "image/png" }],
     shortcut: "/favicon.png",
     apple: [{ url: "/favicon.png", sizes: "2084x2084", type: "image/png" }],
   },
-  title: "Fazen — Graphic Designer & Creativepreneur",
-  description:
-    "Hafaz Sofyan — Graphic Designer with 5+ years of experience. Specializing in Logo & Brand Identity, Social Media, Presentation, and Marketing Design.",
+  openGraph: {
+    title: "Fazen — Graphic Designer & Creativepreneur",
+    description:
+      "Hafaz Sofyan — Graphic Designer with 5+ years of experience. Specializing in Logo & Brand Identity, Social Media, Presentation, and Marketing Design.",
+    url: "https://fazen.vercel.app",
+    siteName: "Fazen",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Fazen — Graphic Designer & Creativepreneur",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fazen — Graphic Designer & Creativepreneur",
+    description:
+      "Hafaz Sofyan — Graphic Designer with 5+ years of experience. Specializing in Logo & Brand Identity, Social Media, Presentation, and Marketing Design.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({ children }) {
