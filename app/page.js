@@ -16,14 +16,18 @@ import Footer from "./components/sections/Footer";
 export default function Home() {
   return (
     <main>
-      {/* Sticky scroll: Hero stays fixed, TrustedBy slides over it */}
-      <div className="relative">
+      {/* Sticky scroll: 200svh parent keeps Hero pinned for exactly one viewport of scroll.
+          Hero releases when TrustedBy has fully covered it. */}
+      <div className="relative h-[200svh]">
         <div className="sticky top-0 z-0">
           <Hero />
         </div>
-        <div className="relative z-10">
-          <TrustedBy />
-        </div>
+      </div>
+
+      {/* TrustedBy pulled up by -100svh so it starts at page position 100svh
+          (right below Hero), slides over Hero as user scrolls. */}
+      <div className="relative z-10 -mt-[100svh]">
+        <TrustedBy />
       </div>
 
       <Introduction />
