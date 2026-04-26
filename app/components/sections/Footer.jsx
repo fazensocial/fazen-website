@@ -61,7 +61,7 @@ const NAV_COLS = [
 const SOCIALS = [
   { Icon: IconInstagram, href: "https://instagram.com",          label: "Instagram" },
   { Icon: IconLinkedin,  href: "https://linkedin.com",           label: "LinkedIn"  },
-  { Icon: IconYoutube,   href: "#",                              label: "YouTube"   },
+  { Icon: IconYoutube,   href: "/soon",                          label: "YouTube"   },
   { Icon: Mail,          href: "mailto:fazensocial@gmail.com",   label: "Email"     },
 ];
 
