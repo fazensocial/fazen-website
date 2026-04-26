@@ -265,7 +265,7 @@ export default function PageHero({
               variants={FADE_UP}
               className="font-display text-[clamp(2.6rem,5.5vw,5rem)]
                          leading-[1.02] text-white-soft mb-5"
-              style={{ textShadow: "0 2px 32px rgba(0,0,0,0.95), 0 0 80px rgba(0,0,0,0.8)" }}
+              style={{ textShadow: "0 2px 32px rgba(9,12,17,0.95), 0 0 80px rgba(9,12,17,0.85)" }}
             >
               {headline}
             </motion.h1>
