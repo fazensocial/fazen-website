@@ -28,20 +28,19 @@ export default function Home() {
           (right below Hero), slides over Hero as user scrolls. */}
       <div className="relative z-10 -mt-[100svh]">
         <TrustedBy />
+        <Introduction />
+        <Advantage />
+        <FeaturedWorks />
+        <Services />
+        <Impact />
+        <Comparison />
+        <Pricing />
+        <Process />
+        <Testimonials />
+        <SelectedWorks />
+        <CTA />
+        <Footer />
       </div>
-
-      <Introduction />
-      <Advantage />
-      <FeaturedWorks />
-      <Services />
-      <Impact />
-      <Comparison />
-      <Pricing />
-      <Process />
-      <Testimonials />
-      <SelectedWorks />
-      <CTA />
-      <Footer />
     </main>
   );
 }
