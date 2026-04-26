@@ -6,11 +6,11 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Portfolio",  href: "/soon"  },
-  { label: "Services",   href: "/services" },
-  { label: "Resources",  href: "/soon"  },
-  { label: "Pricing",    href: "/soon"    },
-  { label: "About",      href: "/soon"      },
+  { label: "Portfolio",  href: "/portfolio"  },
+  { label: "Services",   href: "/services"   },
+  { label: "Resources",  href: "/resources"  },
+  { label: "Pricing",    href: "/pricing"    },
+  { label: "About",      href: "/about"      },
 ];
 
 /* ─── Sub-components ─────────────────────────────────────── */
