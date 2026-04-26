@@ -17,17 +17,6 @@ const STAGGER = {
 };
 
 /* ─── PageHero ───────────────────────────────────────────── */
-/*
- * Reusable inner-page hero. Used on Services, Portfolio, etc.
- * Props:
- *   badge          — string label inside the status pill
- *   headline       — JSX rendered as <h1>
- *   description    — string body text
- *   primaryButton  — JSX (Link or <a>)
- *   secondaryButton— JSX (Link or <a>)
- *   children       — decorative floating elements specific to each page
- *                    (rendered in an aria-hidden, pointer-events-none layer)
- */
 export default function PageHero({
   badge,
   headline,
@@ -55,8 +44,8 @@ export default function PageHero({
   const rotateX = useTransform(smoothY, [0, 1], [10, -10]);
   const rotateY = useTransform(smoothX, [0, 1], [-14,  14]);
 
-  /* Spotlight cone follows cursor X, anchored to top */
-  const spotlightX = useTransform(smoothX, [0, 1], ["28%", "72%"]);
+  /* Lamp follows cursor X subtly */
+  const lampX = useTransform(smoothX, [0, 1], ["-24px", "24px"]);
 
   return (
     <HeroMouseCtx.Provider value={{ smoothX, smoothY }}>
@@ -69,7 +58,7 @@ export default function PageHero({
                    pt-28 pb-20"
       >
 
-        {/* Dot-grid background — references design-software grid */}
+        {/* Dot-grid background */}
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
@@ -80,19 +69,156 @@ export default function PageHero({
           }}
         />
 
-        {/* Spotlight cone from top — follows cursor X */}
+        {/* ── Lamp from top ─────────────────────────────────── */}
+        {/*
+         * Structure mirrors Aceternity lamp:
+         *   1. Two conic-gradient beam halves (overflow visible, masked at edges/bottom)
+         *   2. Blurred void fill below beams (hides lower glow noise)
+         *   3. Centre glow blob + tighter orb (animated breathe)
+         *   4. Lamp line — thin, vivid, z above the blackout
+         *   5. Blackout div — covers everything above the lamp line, leaving a clean V
+         *
+         * Lamp line width ≈ nav-links span (Portfolio → About).
+         * Lamp follows cursor X by ±24px via lampX.
+         */}
         <motion.div
           aria-hidden
           className="absolute top-0 pointer-events-none"
           style={{
-            left: spotlightX,
+            left: "50%",
             translateX: "-50%",
-            width: "680px",
-            height: "100%",
-            background:
-              "radial-gradient(ellipse 44% 82% at 50% 0%, rgba(255,85,0,0.22) 0%, rgba(255,85,0,0.08) 42%, transparent 68%)",
+            x: lampX,
+            width: "440px",
           }}
-        />
+        >
+          {/* scale-y-125 exaggerates the vertical spread of the conic beams */}
+          <div
+            className="relative flex w-full items-center justify-center isolate"
+            style={{ height: "420px", transform: "scaleY(1.25)", transformOrigin: "top center" }}
+          >
+            {/* Left beam — origin at right-top corner = container centre-top */}
+            <div
+              style={{
+                position: "absolute",
+                inset: "auto",
+                right: "50%",
+                height: "224px",
+                width: "220px",
+                overflow: "visible",
+                backgroundImage:
+                  "conic-gradient(from 70deg at right top, rgba(255,255,255,0.18), rgba(255,85,0,0.38), transparent, transparent)",
+              }}
+            >
+              {/* Fade bottom edge into void */}
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "160px", zIndex: 20, background: "linear-gradient(to top, #090C11, transparent)" }} />
+              {/* Fade outer (left) edge */}
+              <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "160px", zIndex: 20, background: "linear-gradient(to right, #090C11, transparent)" }} />
+            </div>
+
+            {/* Right beam — origin at left-top corner = container centre-top */}
+            <div
+              style={{
+                position: "absolute",
+                inset: "auto",
+                left: "50%",
+                height: "224px",
+                width: "220px",
+                overflow: "visible",
+                backgroundImage:
+                  "conic-gradient(from 290deg at left top, transparent, transparent, rgba(255,85,0,0.38), rgba(255,255,255,0.18))",
+              }}
+            >
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "160px", zIndex: 20, background: "linear-gradient(to top, #090C11, transparent)" }} />
+              <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "160px", zIndex: 20, background: "linear-gradient(to left, #090C11, transparent)" }} />
+            </div>
+
+            {/* Blurred void fill — kills stray glow below beams */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                height: "192px",
+                width: "100%",
+                transform: "translateY(48px) scaleX(1.5)",
+                background: "#090C11",
+                filter: "blur(24px)",
+              }}
+            />
+
+            {/* Wide orange glow blob at lamp line */}
+            <motion.div
+              animate={{ opacity: [0.38, 0.62, 0.38] }}
+              transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                zIndex: 50,
+                width: "280px",
+                height: "144px",
+                top: "50%",
+                left: "50%",
+                translateX: "-50%",
+                translateY: "-50%",
+                background: "rgba(255,85,0,0.38)",
+                borderRadius: "50%",
+                filter: "blur(40px)",
+              }}
+            />
+
+            {/* Tight orb — breathes in width */}
+            <motion.div
+              animate={{ width: ["96px", "172px", "96px"] }}
+              transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                zIndex: 30,
+                height: "144px",
+                top: "50%",
+                left: "50%",
+                translateX: "-50%",
+                translateY: "-96px",
+                background: "rgba(255,110,20,0.7)",
+                borderRadius: "50%",
+                filter: "blur(28px)",
+              }}
+            />
+
+            {/* Lamp bar — thin luminous line, z above blackout */}
+            <motion.div
+              animate={{ opacity: [0.72, 1, 0.72] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                zIndex: 50,
+                height: "1.5px",
+                width: "440px",
+                top: "50%",
+                left: "50%",
+                translateX: "-50%",
+                translateY: "-112px",
+                borderRadius: "999px",
+                background:
+                  "linear-gradient(to right, transparent, rgba(255,180,120,0.8) 15%, rgba(255,255,255,1) 38%, rgba(255,85,0,1) 50%, rgba(255,255,255,1) 62%, rgba(255,180,120,0.8) 85%, transparent)",
+                boxShadow:
+                  "0 0 10px 2px rgba(255,85,0,0.55), 0 0 36px 6px rgba(255,85,0,0.18)",
+              }}
+            />
+
+            {/* Blackout — hides everything above the lamp line */}
+            <div
+              style={{
+                position: "absolute",
+                zIndex: 40,
+                width: "110%",
+                height: "176px",
+                top: "50%",
+                left: "50%",
+                translateX: "-50%",
+                translateY: "-200px",
+                background: "#090C11",
+              }}
+            />
+          </div>
+        </motion.div>
 
         {/* Edge vignette — softens the dot grid at edges */}
         <div
